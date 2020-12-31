@@ -1,5 +1,5 @@
 ---
-title: "Reverse Engineering the source code of the BioNTech/Pfizer SARS-CoV-2 Vaccine"
+title: "BioNTech/Pfizer SARS-CoV-2 백신의 소스코드 리버스 엔지니어링하기"
 date: 2020-12-25T20:12:20+01:00
 draft: false
 images:
@@ -8,8 +8,8 @@ images:
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@powerdns_bert">
 <meta name="twitter:creator" content="@powerdns_bert">
-<meta name="twitter:title" content="Reverse Engineering the source code of the BioNTech/Pfizer SARS-CoV-2 Vaccine">
-<meta name="twitter:description" content="Welcome! In this post, we'll be taking a character-by-character look at the source code of the BioNTech/Pfizer SARS-CoV-2 mRNA vaccine.">
+<meta name="twitter:title" content="BioNTech/Pfizer SARS-CoV-2 백신의 소스코드 리버스 엔지니어링하기">
+<meta name="twitter:description" content="환영합니다! 이번 글에서는 BioNTech/Pfizer SARS-CoV-2 mRNA 백신의 소스코드 한글자 한글자를 자세히 살펴보는 시간을 가져볼 것입니다.">
 <meta name="twitter:image" content="https://berthub.eu/articles/bnt162b2.png">
 
 **Translations**: [ελληνικά](https://berthub.eu/articles/posts/greek-reverse-engineering-source-code-of-the-biontech-pfizer-vaccine/)
@@ -22,107 +22,98 @@ images:
 / [Italiano](https://berthub.eu/articles/posts/italian-reverse-engineering-source-code-of-the-biontech-pfizer-vaccine/)
 / [नेपाली](https://onedrive.live.com/view.aspx?resid=9C571BA15BC4287D!15298&ithint=file%2cdocx&authkey=!ALATa2b8xetI7lQ)
 / [Polskie](https://randomseed.pl/rna/reverse-engineering-kodu-zrodlowego-szczepionki-biontech-pfizer-covid-sars-cov-2/)
-/ [русский](https://localcrew.ru/reversepfizer) 
+/ [русский](https://localcrew.ru/reversepfizer)
 / [Português](https://docs.google.com/document/d/1pDo40DXcpXjzqAUfhFfup50-IQ2Qct-mhLnmRpjFZWM/edit).
 / [Markdown for translating](https://raw.githubusercontent.com/berthubert/bnt162b2/master/reverse-engineering-source-code-of-the-biontech-pfizer-vaccine.md)
 
-Welcome! In this post, we'll be taking a character-by-character look at the
-source code of the BioNTech/Pfizer SARS-CoV-2 mRNA vaccine.
+환영합니다! 이번 글에서는 BioNTech/Pfizer SARS-CoV-2 mRNA 백신을 한글자 한글자 자세히
+살펴보는 시간을 가져볼 것입니다.
 
-> *I want to thank the large cast of people who spent time previewing this
-> article for legibility and correctness. All mistakes remain mine though,
-> but I would love to hear about them quickly at bert@hubertnet.nl or
-> [@PowerDNS_Bert](https://twitter.com/PowerDNS_Bert)*
+> *저는 수많은 사람들이 이 글의 가독성과 정확성에 대해 시간을 들여 살펴보는
+> 사람들에게 감사하고 싶습니다. 모든 실수는 저의 것으로 남더라도 잘못된 것에 대해
+> bert@hubertnet.nl나 [@PowerDNS_Bert](https://twitter.com/PowerDNS_Bert)에서
+> 빠르게 듣길 기원합니다.*
 
-Now, these words may be somewhat jarring - the vaccine is a liquid that gets
-injected in your arm. How can we talk about source code?
+> *번역: @Seia-Soto, 번역이 정확하지 않을 경우 Git 레포지토리로 PR을 만들어주시면
+> 감사하겠습니다.*
 
-This is a good question, so let's start off with a small part of the very
-source code of the BioNTech/Pfizer vaccine, also known as
-[BNT162b2](https://en.wikipedia.org/wiki/Tozinameran), also
-known as Tozinameran [also known as
-Comirnaty](https://twitter.com/PowerDNS_Bert/status/1342109138965422083). 
+이 백신은 여러분의 팔에 주입되는 액체입니다 - 이 말은 이제 뭔가 어색하게 들릴 것입니다.
+우리가 어떻게 백신의 소스코드에 대해 말할 수 있을까요?
 
-<center>
-{{< figure src="/articles/bnt162b2.png" caption="First 500 characters of the BNT162b2 mRNA. Source: [World Health Organization](https://mednet-communities.net/inn/db/media/docs/11889.doc)">}}
-</center>
-
-The BNT162b mRNA vaccine has this digital code at its heart.  It is 4284
-characters long, so it would fit in a bunch of tweets.  At the very
-beginning of the vaccine production process, someone uploaded this code to a
-DNA printer (yes), which then converted the bytes on disk to actual DNA
-molecules.
+좋은 질문입니다. 이제 [BNT162b2](https://en.wikipedia.org/wiki/Tozinameran) 혹은
+Tozinameran, [일명 Comirnaty](https://twitter.com/PowerDNS_Bert/status/1342109138965422083)
+로도 알려진 BioNTech/Pfizer의 백신 소스코드의 가장 작은 부분부터 시작해봅시다.
 
 <center>
-{{< figure src="/articles/bioxp-3200.jpg" caption="A [Codex DNA](https://codexdna.com/products/bioxp-system/) BioXp 3200 DNA printer" >}}
+{{< figure src="/articles/bnt162b2.png" caption="BNT162b2 mRNA 첫 500자. 출처: [세계 보건 기구](https://mednet-communities.net/inn/db/media/docs/11889.doc)">}}
 </center>
 
-Out of such a machine come tiny amounts of DNA, which after a lot of
-biological and chemical processing end up as RNA (more about which later) in
-the vaccine vial.  A 30 microgram dose turns out to actually contain 30
-micrograms of RNA.  In addition, there is a clever lipid (fatty) packaging
-system that gets the mRNA into our cells.
+BNT162b mRNA 백신은 이 디지털 코드가 핵심입니다. 이것은 수많은 트윗에 해당하는 양일
+것같은 4284자나 됩니다. 백신 생산의 가장 처음 단계에서 누군가 이 코드를 실제 DNA 분자를
+디스크에 바이트로 기록하는 DNA 프린터에 업로드했습니다.
 
-RNA is the volatile 'working memory' version of DNA.  DNA is like the flash
-drive storage of biology.  DNA is very durable, internally redundant and
-very reliable.  But much like computers do not execute code directly from a
-flash drive, before something happens, code gets copied to a faster,
-more versatile yet far more fragile system.
+<center>
+{{< figure src="/articles/bioxp-3200.jpg" caption="[Codex DNA](https://codexdna.com/products/bioxp-system/) BioXp 3200 DNA 프린터" >}}
+</center>
 
-For computers, this is RAM, for biology it is RNA.  The resemblance is
-striking.  Unlike flash memory, RAM degrades very quickly unless lovingly
-tended to.  The reason the Pfizer/BioNTech mRNA vaccine must be stored in the
-deepest of deep freezers is the same: RNA is a fragile flower.
+수많은 생물학적 그리고 화학적 처리 이후에 이런 기계에서 나오는 소량의 DNA는 백신 용기에서
+RNA로 (이후에 더 다룰 것) 끝이 납니다. 30 마이크로그램만큼의 분량은 정확히
+30 마이크로그램의 RNA입니다. 추가로 여기에 영리한 기름진 (지방) 포장 시스템이 mRNA를
+우리의 세포로 가져오게 합니다.
 
-Each RNA character weighs on the order of 0.53&middot;10⁻²¹ grams, meaning
-there are 6&middot;10¹⁶ characters in a single 30 microgram vaccine dose. 
-Expressed in bytes, this is around 25 petabytes, although it must be said
-this consists of around 2000 billion repetitions of the same 4284
-characters.  The actual informational content of the vaccine is just over a
-kilobyte.  [SARS-CoV-2 itself](https://www.ncbi.nlm.nih.gov/projects/sviewer/?id=NC_045512&tracks=[key:sequence_track,name:Sequence,display_name:Sequence,id:STD649220238,annots:Sequence,ShowLabel:false,ColorGaps:false,shown:true,order:1][key:gene_model_track,name:Genes,display_name:Genes,id:STD3194982005,annots:Unnamed,Options:ShowAllButGenes,CDSProductFeats:true,NtRuler:true,AaRuler:true,HighlightMode:2,ShowLabel:true,shown:true,order:9]&v=1:29903&c=null&select=null&slim=0) weighs in at around 7.5 kilobytes.
+RNA는 DNA의 휘발성 '작업 메모리'와 같은 역할을 합니다. DNA는 생물학에서 플래시
+드라이브와 같은 것이고요. DNA는 매우 튼튼하고, 내부적으로 다중적이고 안정적입니다. 하지만
+컴퓨터가 플래시 드라이브에서 즉시 코드를 실행하지 않는 것처럼 무언가 일어나기 전에 코드는
+더 빠르고 동작이 쉽지만 그와 동시에 불안정한 시스템에 복사됩니다.
 
-The briefest bit of background
-------------------------------
-DNA is a digital code. Unlike computers, which use 0 and 1, life uses A, C, G
-and U/T (the 'nucleotides', 'nucleosides' or 'bases'). 
+컴퓨터에게는 이것은 RAM이고 생물학에서는 RNA입니다. 이 닮음은 충격적이죠. 플래시
+메모리와는 다르게 RAM은 마음에 들어하지 않으면 매우 빠르게 분해되는 경향이 있습니다.
+이것이 Pfizer/BioNTech mRNA 백신이 반드시 가장 차가운 냉동고에 저장되어야 하는
+이유입니다: RNA는 손상되기 쉬운 꽃입니다.
 
-In computers we store the 0 and 1 as the presence or absence of a charge, or
-as a current, as a magnetic transition, or as a voltage, or as a modulation
-of a signal, or as a change in reflectivity.  Or in short, the 0 and 1 are
-not some kind of abstract concept - they live as electrons and in many other
-physical embodiments.
+각각의 RNA 단위 비중은 0.53&middot;10⁻²¹ 그램입니다. 일회분에 30 마이크로그램인 백신은
+6&middot;10¹⁶ 단위가 있다는 뜻입니다. 바이트로 볼 때 이것은 25 페타 바이트 정도입니다.
+또한 이것은 같은 4284자가 2000억 번 정도 반복되어 구성되었다고 볼 수 있습니다. 실제
+백신의 정보는 단지 1 킬로바이트를 조금 넘습니다.
+[SARS-CoV-2 자체](https://www.ncbi.nlm.nih.gov/projects/sviewer/?id=NC_045512&tracks=[key:sequence_track,name:Sequence,display_name:Sequence,id:STD649220238,annots:Sequence,ShowLabel:false,ColorGaps:false,shown:true,order:1][key:gene_model_track,name:Genes,display_name:Genes,id:STD3194982005,annots:Unnamed,Options:ShowAllButGenes,CDSProductFeats:true,NtRuler:true,AaRuler:true,HighlightMode:2,ShowLabel:true,shown:true,order:9]&v=1:29903&c=null&select=null&slim=0)의 비중은 단지 7.5 킬로바이트입니다.
 
-In nature, A, C, G and U/T are molecules, stored as chains in DNA (or RNA).
+가장 짧은 비트의 배경
+-------------------
+DNA는 디지털 코드입니다. 0과 1을 사용하는 컴퓨터와는 다르게 생명은 A, C, G 그리고 U/T
+('뉴클레오타이드', '뉴클레오사이드' 혹은 '염기')를 사용합니다.
 
-In computers, we group 8 bits into a byte, and the byte is the typical unit
-of data being processed.
+컴퓨터에서 우리는 전류가 존재하는지 혹은 누락되었는지, 혹은 전기적 전이, 전압, 신호의
+세기, 반사율의 변화를 0과 1로 표현합니다. 아니면 간단히, 0과 1은 추상적인 개념이
+아닙니다 - 그들은 수많은 다른 물체에서 전자로 존재합니다.
 
-Nature groups 3 nucleotides into a codon, and this codon is the typical unit
-of processing. A codon contains 6 bits of information (2 bits per DNA
-character, 3 characters = 6 bits. This means 2⁶ = 64 different codon values).
+자연에서는, A, C, G 그리고 U/T는 분자이며 DNA (혹은 RNA) 체인에 저장됩니다.
 
-Pretty digital so far. When in doubt, [head to the WHO
-document](https://mednet-communities.net/inn/db/media/docs/11889.doc) with the
-digital code to see for yourself.
+컴퓨터에서는 우리는 8 비트를 하나의 바이트로 묶고 바이트는 처리되는 데이터의 전형적인
+단위입니다.
 
-> *Some further reading is [available
-> here](https://berthub.eu/articles/posts/what-is-life/) - this link ('What
-> is life') might help make sense of the rest of this page. Or, if you like
-> video, I have [two hours for you](https://berthub.eu/dna).*
+자연은 3개의 뉴클레오타이드를 유전 부호로 묶고 유전 부호는 작업의 전형적인 단위입니다.
+유전 부호는 6 비트의 정보를 포함합니다. (DNA 특성 당 2 비트, 3개의 특성 = 6 비트.
+이것은 2⁶ = 64개의 다른 유전 부호 값들임을 의미함) 디지털도 꽤 그렇습니다.
+확실하지 않으면, [WHO 문서를 확인해보세요.](https://mednet-communities.net/inn/db/media/docs/11889.doc)
 
-So what does that code DO?
---------------------------
-The idea of a vaccine is to teach our immune system how to fight a pathogen,
-without us actually getting ill.  Historically this has been done by
-injecting a weakened or incapacitated (attenuated) virus, plus an 'adjuvant'
-to scare our immune system into action.  This was a decidedly analogue
-technique involving billions of eggs (or insects).  It also required a lot
-of luck and loads of time. Sometimes a different (unrelated) virus was also
-used.
+> *읽어볼만한 것이 [여기에 더 있습니다](https://berthub.eu/articles/posts/what-is-life/)
+> - 이 링크 ('What is life')가 이 페이지의 나머지가 이해되게 도울 것입니다.
+> 혹은 영상을 좋아하신다면 [당신을 위한 2시간](https://berthub.eu/dna)이 있습니다.*
 
-An mRNA vaccine achieves the same thing ('educate our immune system') but in
-a laser like way.  And I mean this in both senses - very narrow but also
-very powerful.
+그래서 저 코드가 무엇을 하나요?
+------------------------
+백신의 원리는 우리의 먼역 체계에 실제로 감염되지 않고도 병원체에 어떻게 싸워야 할 지
+알려주는 것입니다. 역사적으로 이것은 우리의 면역 체계가 행동하도록 겁을 주는 '보조제'와
+함께 약해지거나 감염력을 잃은 (혹은 감퇴된) 바이러스를 주입하는 것으로 이루어졌습니다.
+이것은 확실히 수십억개의 알 (혹은 곤충)을 동행하는 오래된 기술입니다. 또한 이 방법은
+수많은 운과 시간의 흐름을 필요로 했습니다. 때때로 다른 (관련되지 않은) 바이러스 또한
+사용되었습니다.
+
+mRNA 백신은 같은 목적('우리의 면역 체계를 학습시키는 것')을 달성합니다. 하지만 레이저
+같이요. 그리고 2가지를 모두 의미합니다 - 매우 제한적이지만 동시에 매우 강력한.
+
+여기에 그래서 백신이 어떻게 작동하는지가 있습니다. 이 주입 과정은 악명높은 SARS-CoV-2의
+'스파이크' 단백질을 설명하는 휘발성의 유전적 물질을 포함합니다.
 
 So here is how it works. The injection contains volatile genetic material
 that describes the famous SARS-CoV-2 'Spike' protein. Through clever
@@ -205,7 +196,7 @@ destroy it before it does anything.
 This is somewhat of a problem for our vaccine - it needs to sneak past our
 immune system. Over many years of experimentation, it was found that if the
 U in RNA is replaced by a slightly modified molecule, our immune system
-loses interest. For real. 
+loses interest. For real.
 
 So in the BioNTech/Pfizer vaccine, every U has been replaced by
 1-methyl-3'-pseudouridylyl, denoted by Ψ.  The really clever bit is that
@@ -228,7 +219,7 @@ course](https://twitter.com/PowerDNS_Bert/status/1329861047168225281).
 
 > Many people have asked, could viruses also use the Ψ technique to beat our
 > immune systems?  In short, this is extremely unlikely.  Life simply does
-> not have the machinery to build 1-methyl-3'-pseudouridylyl nucleotides. 
+> not have the machinery to build 1-methyl-3'-pseudouridylyl nucleotides.
 > Viruses rely on the machinery of life to reproduce themselves, and this
 > facility is simply not there.  The mRNA vaccines quickly degrade in the
 > human body, and there is no possibility of the Ψ-modified RNA
@@ -237,7 +228,7 @@ course](https://twitter.com/PowerDNS_Bert/status/1329861047168225281).
 > is also a good read.
 
 Ok, back to the 5' UTR. What do these 51 characters do? As everything in
-nature, almost nothing has one clear function. 
+nature, almost nothing has one clear function.
 
 When our cells need to *translate* RNA into proteins, this is done using a
 machine called the ribosome.  The ribosome is like a 3D printer for
@@ -253,7 +244,7 @@ Source: [Wikipedia user Bensaccount](https://commons.wikimedia.org/wiki/File:Pro
 </center>
 
 
-This is what we see happening above.  The black ribbon at the bottom is RNA. 
+This is what we see happening above.  The black ribbon at the bottom is RNA.
 The ribbon appearing in the green bit is the protein being formed. The
 things flying in and out are amino acids plus adaptors to make them fit on
 RNA.
@@ -267,10 +258,10 @@ ribosome landing zone. The UTR provides 'lead-in'.
 In addition to this, the UTR also contains metadata: when should translation
 happen?  And how much?  For the vaccine, they took the most 'right now' UTR
 they could find, taken from the [alpha globin
-gene](https://www.tandfonline.com/doi/full/10.1080/15476286.2018.1450054). 
+gene](https://www.tandfonline.com/doi/full/10.1080/15476286.2018.1450054).
 This gene is known to robustly produce a lot of proteins.  In previous
 years, scientists had already found ways to optimize this UTR even further
-(according to the WHO document), so this is not quite the alpha globin UTR. 
+(according to the WHO document), so this is not quite the alpha globin UTR.
 It is better.
 
 The S glycoprotein signal peptide
@@ -278,12 +269,12 @@ The S glycoprotein signal peptide
 As noted, the goal of the vaccine is to get the cell to produce copious
 amounts of the Spike protein of SARS-CoV-2. Up to this point, we have mostly
 encountered metadata and "calling convention" stuff in the vaccine source
-code. But now we enter the actual viral protein territory. 
+code. But now we enter the actual viral protein territory.
 
 We still have one layer of metadata to go however. Once the ribosome (from the
 splendid animation above) has made a protein, that protein still needs to go
 somewhere. This is encoded in the "S glycoprotein signal peptide (extended leader
-sequence)". 
+sequence)".
 
 The way to see this is that at the beginning of the protein there is a sort
 of address label - encoded as part of the protein itself.  In this specific
@@ -306,7 +297,7 @@ Vaccine: AUG UUC GUG UUC CUG GUG CUG CUG CCU CUG GUG UCC AGC CAG UGU GUU
 So what is going on? I have not accidentally listed the RNA in groups of 3
 letters. Three RNA characters make up a codon. And every codon encodes for a
 specific amino acid. The signal peptide in the vaccine consists of *exactly*
-the same amino acids as in the virus itself. 
+the same amino acids as in the virus itself.
 
 So how come the RNA is different?
 
@@ -335,12 +326,12 @@ closely, we see that all changes *except one* lead to more C and Gs.
 
 So why would you do that? As noted above, our immune system takes a very dim
 view of 'exogenous' RNA, RNA code coming from outside the cell. To evade
-detection, the 'U' in the RNA was already replaced by a Ψ. 
+detection, the 'U' in the RNA was already replaced by a Ψ.
 
 However, it turns out that RNA with [a higher
 amount](https://www.nature.com/articles/nrd.2017.243) of Gs and Cs is
 also [converted more efficiently into
-proteins](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1463026/), 
+proteins](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1463026/),
 
 And this has been achieved in the vaccine RNA by replacing many characters
 with Gs and Cs wherever this was possible.
@@ -380,7 +371,7 @@ synonymous like this.. except for two, and this is what we see here.
 
 The third and fourth codons above represent actual changes. The K and V
 amino acids there are both replaced by 'P' or Proline. For 'K' this required
-three changes ('!!!') and for 'V' it required only two ('!!'). 
+three changes ('!!!') and for 'V' it required only two ('!!').
 
 **It turns out that these two changes enhance the vaccine efficiency
 enormously**.
@@ -416,7 +407,7 @@ The [people](https://twitter.com/goodwish916) that
 [discovered](https://twitter.com/KizzyPhD) this should be walking
 around high-fiving themselves incessantly. Unbearable amounts of smugness
 should be emanating from them. [And it would all be well
-deserved](https://twitter.com/McLellan_Lab/status/1291077489566142464). 
+deserved](https://twitter.com/McLellan_Lab/status/1291077489566142464).
 
 > Update!  I have been contacted by the [McLellan
 > lab](https://twitter.com/McLellan_Lab/status/1291077489566142464), one of the
@@ -433,9 +424,9 @@ modifications at the end of the Spike protein:
 ```
           V   L   K   G   V   K   L   H   Y   T   s             
 Virus:   GUG CUC AAA GGA GUC AAA UUA CAU UAC ACA UAA
-Vaccine: GUG CUG AAG GGC GUG AAA CUG CAC UAC ACA UGA UGA 
+Vaccine: GUG CUG AAG GGC GUG AAA CUG CAC UAC ACA UGA UGA
           V   L   K   G   V   K   L   H   Y   T   s   s          
-               !   !   !   !     ! !   !          ! 
+               !   !   !   !     ! !   !          !
 ```
 
 At the end of a protein we find a 'stop' codon, denoted here by a lowercase
@@ -447,7 +438,7 @@ The 3' Untranslated Region
 --------------------------
 Much like the ribosome needed some lead-in at the 5' end, where we found the
 'five prime untranslated region', at the end of a protein coding region we find a similar
-construct called the 3' UTR. 
+construct called the 3' UTR.
 
 Many words could be written about the 3' UTR, but here I quote [what the
 Wikipedia
@@ -480,13 +471,13 @@ degradation.
 
 Studies have been done to find out what the optimal number of A's at the end
 is for mRNA vaccines. I read in the open literature that this peaked at 120
-or so. 
+or so.
 
 The BNT162b2 vaccine ends with:
 
 ```
                                      ****** ****
-UAGCAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAGCAUAU GACUAAAAAA AAAAAAAAAA 
+UAGCAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAGCAUAU GACUAAAAAA AAAAAAAAAA
 AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA AAAAAAAAAA AAAA
 ```
 
@@ -499,7 +490,7 @@ optimization to enhance protein expression even more.
 Summarising
 -----------
 With this, we now know the exact mRNA contents of the BNT162b2 vaccine, and
-for most parts we understand why they are there: 
+for most parts we understand why they are there:
 
  * The CAP to make sure the RNA looks like regular mRNA
  * A known successful and optimized 5' untranslated region (UTR)
@@ -544,7 +535,7 @@ adopt a shape.  This is the famous 'folding'.  The shape and state of a
 protein can depend on temperature, acidity, presence of (UV) light, magnetic
 fields (!!) and many other things.
 
-The famous "Spike" of SARS-CoV-2 is such a protein. 
+The famous "Spike" of SARS-CoV-2 is such a protein.
 
 As noted, DNA is organized in 6-bit codons. Each codon uniquely encodes for
 a single amino acid, using a nearly universal table:
